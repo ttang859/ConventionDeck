@@ -59,9 +59,9 @@ def create_user_info(email, username, user_type):
         session.commit()
 
 def get_user_info(user_email):
-    with Session(engine) as session, session.begin():
+    with Session(engine) as session:
         statement = select(UserInfo).where(UserInfo.email == user_email)
-        return session.exec(statement).one_or_none()
+        return session.exec(statement).first()
 
 def update_user_info(email, username, user_type):
     with Session(engine) as session, session.begin():

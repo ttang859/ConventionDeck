@@ -60,7 +60,7 @@ services:
       POSTGRES_SERVICE: conventiondeck-userdb-1
       POSTGRES_PORT: 5432
       # half a day in seconds for TTL user session
-      TTL_SECONDS: 1000 #43200
+      TTL_SECONDS: 43200
     restart: unless-stopped
     networks:
       - main-network
@@ -104,6 +104,8 @@ services:
   #     redis:
   #       condition: service_healthy
   #     booth-service:
+  #       condition: service_healthy
+  #     registration-service:
   #       condition: service_healthy
   #   environment:
   #     - REDIS_HOST=redis

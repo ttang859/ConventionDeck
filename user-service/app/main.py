@@ -112,9 +112,11 @@ async def create_user(new_user: UserCreate):
     except Exception as e:
         raise e
 
+
 @app.put("/update")
 async def update_user(update_user: UserResponse):
     pass
+
 
 @app.delete("/delete")
 async def delete_user(user_id: str):
