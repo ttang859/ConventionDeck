@@ -19,16 +19,16 @@ services:
   userdb:
     image: "postgres:16-alpine"
     ports:
-    # consider this later, manually mapping port to this db causes issues with ports for other dbs later
+      # consider this later, manually mapping port to this db causes issues with ports for other dbs later
       - "5432:5432"
     environment:
-      POSTGRES_DB: user
-      POSTGRES_USER: useruser
-      POSTGRES_PASSWORD: userpass
+      POSTGRES_DB: ${USER_DB}
+      POSTGRES_USER: ${USER_USER}
+      POSTGRES_PASSWORD: ${USER_PASSWORD}
     volumes:
       - ./userdb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user_info_user -d user_info" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${USER_USER} -d ${USER_DB}" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -44,14 +44,27 @@ services:
     depends_on:
       # convention-service:
       #   condition: service_healthy
+      userdb:
+        condition: service_healthy
       inventory-service:
         condition: service_healthy
     environment:
       # - CONVENTION_BASE=http://convention-service:8000
-      - INVENTORY_BASE=http://inventory-service:8000
+      POSTGRES_DB: ${USER_DB}
+      POSTGRES_USER: ${USER_USER}
+      POSTGRES_PASSWORD: ${USER_PASSWORD}
+      INVENTORY_BASE: http://inventory-service:8000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # come back and figure the naming conventions out later
+      POSTGRES_SERVICE: conventiondeck-userdb-1
+      POSTGRES_PORT: 5432
+      # half a day in seconds for TTL user session
+      TTL_SECONDS: 1000 #43200
     restart: unless-stopped
     networks:
       - main-network
+      - user-network
       - redis-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
