@@ -20,7 +20,7 @@ services:
     image: "postgres:16-alpine"
     ports:
       # consider this later, manually mapping port to this db causes issues with ports for other dbs later
-      - "5432:5432"
+      - "${USER_PORT}:5432"
     environment:
       POSTGRES_DB: ${USER_DB}
       POSTGRES_USER: ${USER_USER}
@@ -35,6 +35,25 @@ services:
     restart: unless-stopped
     networks:
       - user-network
+  inventorydb:
+    image: "postgres:16-alpine"
+    ports:
+      # consider this later, manually mapping port to this db causes issues with ports for other dbs later
+      - "${INV_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${INV_DB}
+      POSTGRES_USER: ${INV_USER}
+      POSTGRES_PASSWORD: ${INV_PASSWORD}
+    volumes:
+      - ./inventorydb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${INV_USER} -d ${INV_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - inventory-network
   user-service:
     build:
       context: ./user-service
@@ -48,8 +67,8 @@ services:
         condition: service_healthy
       userdb:
         condition: service_healthy
-      # inventory-service:
-      #   condition: service_healthy
+      inventory-service:
+        condition: service_healthy
     environment:
       POSTGRES_DB: ${USER_DB}
       POSTGRES_USER: ${USER_USER}
@@ -60,7 +79,7 @@ services:
       REDIS_PORT: 6379
       # come back and figure the naming conventions out later
       POSTGRES_SERVICE: conventiondeck-userdb-1
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: ${USER_PORT}
       # half a day in seconds for TTL user session
       TTL_SECONDS: 43200000
     restart: unless-stopped
@@ -81,14 +100,17 @@ services:
     expose:
       - "8000"
     depends_on:
-      redis:
+      inventorydb:
         condition: service_healthy
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      POSTGRES_DB: ${INV_DB}
+      POSTGRES_USER: ${INV_USER}
+      POSTGRES_PASSWORD: ${INV_PASSWORD}
+      POSTGRES_SERVICE: conventiondeck-inventorydb-1
+      POSTGRES_PORT: ${INV_PORT}
     networks:
       - main-network
-      - redis-network
+      - inventory-network
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -198,4 +220,6 @@ networks:
   redis-network:
     driver: bridge
   user-network:
+    driver: bridge
+  inventory-network:
     driver: bridge

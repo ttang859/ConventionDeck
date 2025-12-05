@@ -137,7 +137,7 @@ async def update_user(update_user: UserUpdate):
         redis_client.setex(user.email, TTL_SECONDS,
                            user.model_dump_json())
         logging.info(
-            f'CACHED USER: {user.email} with fields: {user.model_dump_json(indent=2)}')
+            f'CACHED USER: {user.email} with fields: {user.model_dump_json()}')
         return {"status": "updated"}
     except Exception as e:
         raise e

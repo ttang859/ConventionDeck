@@ -1,16 +1,11 @@
 import os
 import time
 
-import redis.asyncio as redis
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 
 service = "inventory-service"
 
 app = FastAPI()
-
-redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "redis"), port=int(
-    os.getenv("REDIS_PORT", 6379)), decode_responses=True)
 
 async def response_time(call_fn):
     try:
@@ -31,7 +26,13 @@ def format_health_response(service_name, dependencies_health):
 @app.get("/health")
 async def health_check():
     try:
-        redis_resp = await response_time(lambda: redis_client.ping())
-        return format_health_response(service, [{"redis": redis_resp}])
+        return format_health_response(service, [{}])
     except Exception as e:
         raise HTTPException(503)
+
+@app.get("/getitem/{owner_id}")
+async def get_all_inv(owner_id: str):
+    if owner_id:  # if owner_id specifed, retrieve all items for that owner_id
+        pass
+    else: #drop the entire list of available inventory (good idea? prob not)
+        pass

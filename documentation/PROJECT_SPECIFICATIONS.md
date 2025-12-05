@@ -93,14 +93,8 @@ A centralized platform for card convention shows to be hosted, attended and orga
 ---
 
 ## user-db
-- **Purpose:** Local cache for user information.
-- **Role:** Provides faster access to user data; syncs with main database.
-
----
-
-## main-db
-- **Purpose:** Central “ground-truth” data store for the entire system.
-- **Role:** Authoritative source for all user, convention, booth, registration, and inventory data.
+- **Purpose:** isolated database for user information.
+- **Role:** Holds user_id, email, username, and user_type
 
 # Tech Stack
 ### Front-end:
@@ -109,8 +103,9 @@ A centralized platform for card convention shows to be hosted, attended and orga
 <!-- - Spring Boot + Gradle (Java) -->
 - FastAPI + Uvicorn
 ### Database: (still deciding)
-- MongoDB (NoSQL)
-- Supabase (build on Postgres SQL)
+<!-- - MongoDB (NoSQL)
+- Supabase (build on Postgres SQL) -->
+- Postgres Container (for now)
 ### NGINX
 - Authentication
 - Load Balancer
