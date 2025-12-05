@@ -6,6 +6,8 @@ from typing import Literal, Optional
 from pydantic import EmailStr
 from sqlmodel import Field, Session, SQLModel, create_engine, select, update
 
+from .models import UserResponse
+
 # Load the Postgres DSN (connection string) from environment variables
 DB = os.getenv("POSTGRES_DB")
 SERVICE_NAME = os.getenv("POSTGRES_SERVICE")
@@ -27,9 +29,9 @@ class UserInfo(SQLModel, table=True):
     __tablename__ = "user_info"  # type: ignore # matches our table name in SQL
 
     id: str = Field(default_factory=uuid.uuid4, primary_key=True)
-    email: EmailStr
+    email: str  # EmailStr
     username: str
-    user_type: str
+    user_type: str  # Literal["vendor", "attendee"]
 
 # create tables if they don't exist
 
@@ -45,32 +47,38 @@ def close_db_connection():
     engine.dispose()
     print("Userdb connection closed.")
 
-
+# ORM function to create user instance in userdb table
 def create_user_info(email, username, user_type):
     with Session(engine) as session, session.begin():
-        # if get_user_info(email) is not None:
-            # statement = update(UserInfo).where(UserInfo.email == email).values(
-            #     username=username, user_type=user_type)
-            # user = session.exec(statement).one_or_none()
-        # else:
         user = UserInfo(
             email=email, username=username, user_type=user_type)
         session.add(user)
         session.commit()
 
+# ORM function to retrieve user instance by email (early exposure, secure retrieval will use id from this call)
 def get_user_info(user_email):
     with Session(engine) as session:
         statement = select(UserInfo).where(UserInfo.email == user_email)
-        return session.exec(statement).first()
+        return session.exec(statement).one_or_none()
 
-def update_user_info(email, username, user_type):
-    with Session(engine) as session, session.begin():
-        statement = update(UserInfo).where(UserInfo.email == email).values(
-        username=username, user_type=user_type)
-        user = session.exec(statement).one_or_none()
+# ORM function to update username and user_type provided a user id
+def update_user_info(id, username, user_type):
+    with Session(engine) as session:
+        value_hash = {}
+        if username:
+            value_hash["username"] = username
+        if user_type:
+            value_hash["user_type"] = user_type
+        statement = update(UserInfo).where(UserInfo.id == id).values(
+            value_hash)
+        session.exec(statement)
         session.commit()
-        return user
+        user = session.exec(select(UserInfo).where(
+            UserInfo.id == id)).one_or_none()
+        if user:
+            return UserResponse(id=user.id, email=user.email, username=user.username, user_type=user.user_type)# type: ignore
 
+# ORM to delete user from userdb (need to consider cascading, hold for now)
 def delete_user_info(user_id):
     with Session(engine) as session, session.begin():
         statement = select(UserInfo).where(UserInfo.id == user_id)

@@ -44,23 +44,25 @@ services:
     depends_on:
       # convention-service:
       #   condition: service_healthy
+      redis:
+        condition: service_healthy
       userdb:
         condition: service_healthy
-      inventory-service:
-        condition: service_healthy
+      # inventory-service:
+      #   condition: service_healthy
     environment:
-      # - CONVENTION_BASE=http://convention-service:8000
       POSTGRES_DB: ${USER_DB}
       POSTGRES_USER: ${USER_USER}
       POSTGRES_PASSWORD: ${USER_PASSWORD}
       INVENTORY_BASE: http://inventory-service:8000
+      #CONVENTION_BASE: http://convention-service:8000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       # come back and figure the naming conventions out later
       POSTGRES_SERVICE: conventiondeck-userdb-1
       POSTGRES_PORT: 5432
       # half a day in seconds for TTL user session
-      TTL_SECONDS: 43200
+      TTL_SECONDS: 43200000
     restart: unless-stopped
     networks:
       - main-network

@@ -9,8 +9,15 @@ import redis
 from fastapi import FastAPI, HTTPException, Response
 from pydantic import EmailStr
 
-from .db import close_db_connection, create_user_info, get_user_info, init_db
-from .models import UserCreate, UserResponse
+from .db import (
+    close_db_connection,
+    create_user_info,
+    delete_user_info,
+    get_user_info,
+    init_db,
+    update_user_info,
+)
+from .models import UserCreate, UserResponse, UserUpdate
 
 
 @asynccontextmanager
@@ -34,7 +41,7 @@ redis_client = redis.Redis(host=os.getenv(
 CONVENTION_BASE = os.getenv(
     "CONVENTION_BASE", "http://convention-service:8000")
 INVENTORY_BASE = os.getenv("INVENTORY_BASE", "http://inventory-service:8000")
-TTL_SECONDS = int(os.getenv("TTL_SECONDS", "3000"))
+TTL_SECONDS = int(os.getenv("TTL_SECONDS", "10000"))
 
 
 async def response_time(call_fn):
@@ -67,7 +74,7 @@ async def health_check():
 
 
 @app.get("/user/{user_email}")
-async def get_user(user_email: EmailStr):
+async def get_user(user_email: EmailStr) -> Response:
     # check cache (cache-aside) and if fails, get from postgres
     try:
         start_time = time.time()
@@ -80,10 +87,14 @@ async def get_user(user_email: EmailStr):
                 raise HTTPException(404, "User Not Found")
             logging.info(f'USERDB RESPONSE: {psql_resp}')
             # setex with ttl in cache
-            redis_client.setex(user_email, TTL_SECONDS, json.dumps(psql_resp))
+            redis_client.setex(user_email, TTL_SECONDS,
+                               json.dumps(psql_resp.model_dump()))
             cache_resp = redis_client.get(name=user_email)
-        logging.info({"payload": cache_resp,
-                     "resp_time": time.time() - start_time})
+        #     cache_dict = psql_resp.model_dump()
+        # else:
+        #     cache_dict = json.loads(json.dumps(cache_resp))
+        logging.info(
+            f'RETRIEVED USER: {user_email} WITH PAYLOAD: {cache_resp} IN {time.time() - start_time} MS')
         return Response(cache_resp, status_code=200)
     except Exception as e:
         raise e
@@ -108,16 +119,30 @@ async def create_user(new_user: UserCreate):
                            user.model_dump_json(indent=2))
         logging.info(
             f'CACHED USER: {new_user.email} with fields: {user.model_dump_json(indent=2)}')
-        return {"status": "created"}
+        return Response(json.dumps({"status": "created"}), status_code=201)
     except Exception as e:
         raise e
 
 
 @app.put("/update")
-async def update_user(update_user: UserResponse):
-    pass
+async def update_user(update_user: UserUpdate):
+    try:
+        # update user in userdb
+        user = update_user_info(
+            id=update_user.id, username=update_user.username, user_type=update_user.user_type)
+        if not user:
+            raise HTTPException(404)
+        logging.info(f'UPDATED USER {user.email} IN USERDB')
+        # setex in redis to update cache and ttl
+        redis_client.setex(user.email, TTL_SECONDS,
+                           user.model_dump_json())
+        logging.info(
+            f'CACHED USER: {user.email} with fields: {user.model_dump_json(indent=2)}')
+        return {"status": "updated"}
+    except Exception as e:
+        raise e
 
-
+# on hold for now, need to consider cascading across other dbs from other services
 @app.delete("/delete")
 async def delete_user(user_id: str):
     pass
