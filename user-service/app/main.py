@@ -151,6 +151,7 @@ async def delete_user(user_id: str):
 @app.get("/inv/{user_id}/")
 async def get_user_inventory(user_id: str):
     # get user's inventory from inventory-service GET endpoint (should only work if user is a vendor)
+    # steps: retrieve user id from user GET then call POST inventory-service:8000/inventory/get with user id in body of request using httpx
     pass
 
 

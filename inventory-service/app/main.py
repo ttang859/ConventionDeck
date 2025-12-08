@@ -43,14 +43,12 @@ def format_health_response(service_name, dependencies_health):
         "dependencies": dependencies_health
     }
 
-
 @app.get("/health")
 async def health_check():
     try:
         return format_health_response(service, [{}])
     except Exception as e:
         raise HTTPException(503)
-
 
 # has an owner_id filter to pull up a list of all cards associated to an owner (owner's card inventory)
 @app.post("/get")
@@ -66,7 +64,6 @@ async def get_all_inv(req: Optional[InventoryRetrieve] = None):
         return Response(json.dumps({"payload": db_resp}))
     except Exception as e:
         raise e
-
 
 @app.post("/create")
 async def create_inv_entry(entry: InventoryCreate):
@@ -86,7 +83,6 @@ async def update_inv_entry(entry: InventoryUpdate):
         update_card_entry(card_id=entry.id, price=entry.price)
     except Exception as e:
         raise e
-
 
 @app.delete("/delete")
 async def delete_inv_entry(entry: InventoryDelete):

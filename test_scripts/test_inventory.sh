@@ -59,12 +59,14 @@ http://localhost:8080/inventory/get
 echo -e "\n"
 ITEM_ID=$(jq -r '.payload[0].id' ./test_scripts/script_output.json)
 
+# update price of item
 curl -X PUT \
 -H 'Content-Type: application/json' \
 -d "{\"id\":\"$ITEM_ID\", \"price\":\"29.99\"}" \
 http://localhost:8080/inventory/update
 echo -e "\n"
 
+# verify price of item has been updated
 curl -X POST \
 -H 'Content-Type: application/json' \
 -d "{\"owner_id\":\"$USER_ID\"}" \
