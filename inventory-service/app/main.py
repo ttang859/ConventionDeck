@@ -5,7 +5,7 @@ import time
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Response
 
 from .db import close_db_connection, create_card_entry, get_card_entries, init_db, update_card_entry, delete_card_entry
 from .models import InventoryCreate, InventoryDelete, InventoryRetrieve, InventoryUpdate
