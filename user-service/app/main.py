@@ -115,7 +115,7 @@ async def create_user(new_user: UserCreate):
         logging.info(
             f'CREATED USER IN USERDB: {new_user.email} PAYLOD: {user.model_dump_json(indent=2)}')
         # cache it with TTL and save to postgres
-        redis_client.setex(new_user.email, TTL_SECONDS,
+        redis_client.setex(new_user.email, TTL_SECONDS, # type: ignore
                            user.model_dump_json(indent=2))
         logging.info(
             f'CACHED USER: {new_user.email} with fields: {user.model_dump_json(indent=2)}')

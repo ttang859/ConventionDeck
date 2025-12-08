@@ -18,9 +18,9 @@ services:
 
   userdb:
     image: "postgres:16-alpine"
-    ports:
+    expose:
       # consider this later, manually mapping port to this db causes issues with ports for other dbs later
-      - "${USER_PORT}:5432"
+      - "${PG_PORT}}"
     environment:
       POSTGRES_DB: ${USER_DB}
       POSTGRES_USER: ${USER_USER}
@@ -37,9 +37,9 @@ services:
       - user-network
   inventorydb:
     image: "postgres:16-alpine"
-    ports:
+    expose:
       # consider this later, manually mapping port to this db causes issues with ports for other dbs later
-      - "${INV_PORT}:5432"
+      - "${PG_PORT}"
     environment:
       POSTGRES_DB: ${INV_DB}
       POSTGRES_USER: ${INV_USER}
@@ -79,7 +79,7 @@ services:
       REDIS_PORT: 6379
       # come back and figure the naming conventions out later
       POSTGRES_SERVICE: conventiondeck-userdb-1
-      POSTGRES_PORT: ${USER_PORT}
+      POSTGRES_PORT: ${PG_PORT}
       # half a day in seconds for TTL user session
       TTL_SECONDS: 43200000
     restart: unless-stopped
@@ -107,7 +107,7 @@ services:
       POSTGRES_USER: ${INV_USER}
       POSTGRES_PASSWORD: ${INV_PASSWORD}
       POSTGRES_SERVICE: conventiondeck-inventorydb-1
-      POSTGRES_PORT: ${INV_PORT}
+      POSTGRES_PORT: ${PG_PORT}
     networks:
       - main-network
       - inventory-network
