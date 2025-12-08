@@ -73,5 +73,19 @@ curl -X POST \
 http://localhost:8080/inventory/get
 echo -e "\n"
 
+# TEST 4
+echo "Testing item deletion"
+curl -X DELETE \
+-H 'Content-Type: application/json' \
+-d "{\"id\":\"$ITEM_ID\"}" \
+http://localhost:8080/inventory/delete
+echo -e "\n"
+
+# verify item has been deleted
+curl -X POST \
+-H 'Content-Type: application/json' \
+-d "{\"owner_id\":\"$USER_ID\"}" \
+http://localhost:8080/inventory/get
+echo -e "\n"
 
 docker compose down -v
