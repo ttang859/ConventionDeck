@@ -81,6 +81,7 @@ async def create_inv_entry(entry: InventoryCreate):
 async def update_inv_entry(entry: InventoryUpdate):
     try:
         update_card_entry(card_id=entry.id, price=entry.price)
+        return {"status":"updated"}
     except Exception as e:
         raise e
 
@@ -88,5 +89,6 @@ async def update_inv_entry(entry: InventoryUpdate):
 async def delete_inv_entry(entry: InventoryDelete):
     try:
         delete_card_entry(card_id=entry.id)
+        return {"status":"deleted"}
     except Exception as e:
         raise e

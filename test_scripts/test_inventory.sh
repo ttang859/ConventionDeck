@@ -6,9 +6,9 @@ docker compose up -d --build
 echo "Testing create new inventory entry"
 # set up a user to attach item to
 curl -X POST \
-    -H 'Content-Type: application/json' \
-    -d '{"email": "ttangvz859@gmail.com", "username":"tt", "user_type": "vendor"}' \
-    http://localhost:8080/users/create
+-H 'Content-Type: application/json' \
+-d @./test_data/create_user.json \
+http://localhost:8080/users/create
 curl -o ./test_scripts/script_output.json -X GET http://localhost:8080/users/user/ttangvz859@gmail.com
 USER_ID=$(jq -r '.id' ./test_scripts/script_output.json)
 echo "Created user with ID: $USER_ID"
@@ -43,6 +43,7 @@ http://localhost:8080/inventory/get \
 echo -e "\n"
 
 # this should return the item associated with ttangvz859@gmail.com
+echo "Retrieving items for user ID: $USER_ID"
 curl -X POST \
 -H 'Content-Type: application/json' \
 -d "{\"owner_id\":\"$USER_ID\"}" \

@@ -54,6 +54,25 @@ services:
     restart: unless-stopped
     networks:
       - inventory-network
+  conventiondb:
+    image: "postgres:16-alpine"
+    expose:
+      # consider this later, manually mapping port to this db causes issues with ports for other dbs later
+      - "${PG_PORT}"
+    environment:
+      POSTGRES_DB: ${CONV_DB}
+      POSTGRES_USER: ${CONV_USER}
+      POSTGRES_PASSWORD: ${CONV_PASSWORD}
+    volumes:
+      - ./conventiondb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${CONV_USER} -d ${CONV_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - convention-network
   user-service:
     build:
       context: ./user-service
@@ -118,34 +137,37 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-  # convention-service:
-  #   build:
-  #     context: ./convention-service
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8000"
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #     booth-service:
-  #       condition: service_healthy
-  #     registration-service:
-  #       condition: service_healthy
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - BOOTH_BASE=http://booth-service:8000
-  #     - REGISTRATION_BASE=http://booth-service:8000
-  #   networks:
-  #     - main-network
-  #     - redis-network
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
+  convention-service:
+    build:
+      context: ./convention-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000"
+    depends_on:
+      conventiondb:
+        condition: service_healthy
+      # booth-service:
+      #   condition: service_healthy
+      # registration-service:
+      #   condition: service_healthy
+    environment:
+      POSTGRES_DB: ${CONV_DB}
+      POSTGRES_USER: ${CONV_USER}
+      POSTGRES_PASSWORD: ${CONV_PASSWORD}
+      # BOOTH_BASE: http://booth-service:8000
+      # REGISTRATION_BASE: http://booth-service:8000
+      POSTGRES_SERVICE: conventiondeck-conventiondb-1
+      POSTGRES_PORT: ${PG_PORT}
+    networks:
+      - main-network
+      - convention-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   # booth-service:
   #   build:
   #     context: ./booth-service
@@ -198,8 +220,8 @@ services:
         condition: service_healthy
       inventory-service:
         condition: service_healthy
-      # convention-service:
-      #   condition: service_healthy
+      convention-service:
+        condition: service_healthy
       # booth-service:
       #   condition: service_healthy
       # registration-service:
@@ -222,4 +244,6 @@ networks:
   user-network:
     driver: bridge
   inventory-network:
+    driver: bridge
+  convention-network:
     driver: bridge

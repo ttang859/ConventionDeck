@@ -4,7 +4,7 @@ docker compose up -d --build
 
 # TEST 1
 echo "Testing user create"
-curl -X POST -H 'Content-Type: application/json' -d '{"email": "ttangvz859@gmail.com", "username":"tt", "user_type": "vendor"}' http://localhost:8080/users/create
+curl -X POST -H 'Content-Type: application/json' -d @./test_data/create_user.json http://localhost:8080/users/create
 echo -e "\n"
 
 # TEST 2
@@ -25,4 +25,4 @@ echo -e "\n"
 curl -X GET http://localhost:8080/users/user/ttangvz859@gmail.com
 echo -e "\n"
 
-docker compose down -v  
+docker compose down -v
