@@ -24,7 +24,7 @@ class ConventionResponse(BaseModel):
     id: str
     convention_name: str
     host_id: str
-    start: str
+    start: datetime
     loc: str
     vendor_count: int
 

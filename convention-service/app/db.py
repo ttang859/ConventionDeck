@@ -26,13 +26,13 @@ engine = create_engine(PG_DSN)
 
 
 class ConventionInfo(SQLModel, table=True):
-    __tablename__ = "covention_info"  # type: ignore # matches our table name in SQL
+    __tablename__ = "convention_info"  # type: ignore # matches our table name in SQL
 
     id: str = Field(default_factory=uuid.uuid4, primary_key=True)
     convention_name: str
     host_id: str
     loc: str
-    start: str
+    start: datetime
     vendor_count: int = 0
 
 # create tables if they don't exist

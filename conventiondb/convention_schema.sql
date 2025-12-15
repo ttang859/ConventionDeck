@@ -9,13 +9,13 @@ CREATE TABLE IF NOT EXISTS convention_info (
 
 CREATE TABLE IF NOT EXISTS registered_attendees (
     id SERIAL PRIMARY KEY,
-    conv_id TEXT,
-    attende_id TEXT
+    conv_id TEXT REFERENCES convention_info(id) ON DELETE CASCADE,
+    attendee_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS vendor_booths (
-    id SERIAL PRIMARY KEY,
-    conv_id TEXT,
+    conv_id TEXT REFERENCES convention_info(id) ON DELETE CASCADE,
     vendor_id TEXT,
-    booth_number TEXT
+    booth_number INTEGER,
+    PRIMARY KEY(conv_id, booth_number)
 );
