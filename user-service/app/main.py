@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 import httpx
 import redis
 from fastapi import FastAPI, HTTPException, Response
+from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 
 from .db import (
@@ -115,7 +116,7 @@ async def create_user(new_user: UserCreate):
         logging.info(
             f'CREATED USER IN USERDB: {new_user.email} PAYLOD: {user.model_dump_json(indent=2)}')
         # cache it with TTL and save to postgres
-        redis_client.setex(new_user.email, TTL_SECONDS, # type: ignore
+        redis_client.setex(new_user.email, TTL_SECONDS,  # type: ignore
                            user.model_dump_json(indent=2))
         logging.info(
             f'CACHED USER: {new_user.email} with fields: {user.model_dump_json(indent=2)}')
@@ -143,22 +144,28 @@ async def update_user(update_user: UserUpdate):
         raise e
 
 # on hold for now, need to consider cascading across other dbs from other services
+
+
 @app.delete("/delete")
 async def delete_user(user_id: str):
     pass
 
 
-@app.get("/inv/{user_id}/")
+@app.get("/inv/{user_id}")
 async def get_user_inventory(user_id: str):
     # get user's inventory from inventory-service GET endpoint (should only work if user is a vendor)
     # steps: retrieve user id from user GET then call POST inventory-service:8000/inventory/get with user id in body of request using httpx
     try:
-        pass
+        async with httpx.AsyncClient() as client:
+            user_inv = await client.post(
+                f'{INVENTORY_BASE}/get', json={"owner_id": user_id})
+            logging.info("Retreived inventory for user")
+            return JSONResponse(content=user_inv.json(), status_code=200)
     except Exception as e:
         raise e
 
 
-@app.get("/conv/{user_id}/")
+@app.get("/conv/{user_id}")
 async def get_attending_conventions(user_id: str):
     # get list of attending conventions from convention-service GET endpoint
     pass

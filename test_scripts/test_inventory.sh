@@ -74,6 +74,13 @@ curl -X POST \
 http://localhost:8080/inventory/get
 echo -e "\n"
 
+# testing that user can retrive their inventory via user endpoint
+echo "Testing item retrieval by ID"
+curl -X GET \
+-H 'Content-Type: application/json' \
+http://localhost:8080/users/inv/$USER_ID
+echo -e "\n"
+
 # TEST 4
 echo "Testing item deletion"
 curl -X DELETE \

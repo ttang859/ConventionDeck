@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Literal, Optional
 
 from pydantic import EmailStr
-from sqlmodel import Field, Session, SQLModel, create_engine, delete, select, update
+from sqlmodel import Field, Session, SQLModel, create_engine, select, update
 
 from .models import ConventionCreate, ConventionResponse
 
