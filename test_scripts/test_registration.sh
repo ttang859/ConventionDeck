@@ -31,16 +31,18 @@ echo -e "\n"
 curl -X POST http://localhost:8080/registration/register_user -H "Content-Type: application/json" -d '{"conv_id":"'"$CONV_ID"'", "attendee_id":"dummy_attendee2"}'
 echo -e "\n"
 
-echo "Testing get attendees by conv_id"
+echo "Testing get attendees by conv_id: $CONV_ID"
 curl -X POST http://localhost:8080/registration/get_attendees/$CONV_ID
 echo -e "\n"
 
-echo "Testing get conventions by user_id"
+echo "Testing get conventions by user_id: $VID"
 curl -X POST http://localhost:8080/registration/get_conventions/$VID
 echo -e "\n"
 
 echo "Testing unregister attendee"
 curl -X DELETE http://localhost:8080/registration/unregister_user -H "Content-Type: application/json" -d '{"conv_id":"'"$CONV_ID"'", "attendee_id":"'"$VID"'"}'
+echo -e "\n"
+curl -X POST http://localhost:8080/registration/get_attendees/$CONV_ID
 echo -e "\n"
 
 docker compose down -v

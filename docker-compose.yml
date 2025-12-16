@@ -90,7 +90,7 @@ services:
       POSTGRES_USER: ${USER_USER}
       POSTGRES_PASSWORD: ${USER_PASSWORD}
       INVENTORY_BASE: http://inventory-service:8000
-      #CONVENTION_BASE: http://convention-service:8000
+      #REGISTRATION_BASE: http://registration-service:8000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       # come back and figure the naming conventions out later
@@ -149,8 +149,6 @@ services:
       POSTGRES_PASSWORD: ${CONV_PASSWORD}
       POSTGRES_SERVICE: conventiondeck-conventiondb-1
       POSTGRES_PORT: ${PG_PORT}
-       # BOOTH_BASE: http://booth-service:8000
-      # REGISTRATION_BASE: http://booth-service:8000
     networks:
       - main-network
       - convention-network
