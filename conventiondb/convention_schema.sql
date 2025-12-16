@@ -7,10 +7,10 @@ CREATE TABLE IF NOT EXISTS convention_info (
     vendor_count INTEGER DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS registered_attendees (
-    id SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS registration (
     conv_id TEXT REFERENCES convention_info(id) ON DELETE CASCADE,
-    attendee_id TEXT
+    attendee_id TEXT,
+    PRIMARY KEY(conv_id, attendee_id)
 );
 
 CREATE TABLE IF NOT EXISTS vendor_booths (

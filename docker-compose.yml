@@ -19,8 +19,7 @@ services:
   userdb:
     image: "postgres:16-alpine"
     expose:
-      # consider this later, manually mapping port to this db causes issues with ports for other dbs later
-      - "${PG_PORT}}"
+      - "${PG_PORT}"
     environment:
       POSTGRES_DB: ${USER_DB}
       POSTGRES_USER: ${USER_USER}
@@ -38,7 +37,6 @@ services:
   inventorydb:
     image: "postgres:16-alpine"
     expose:
-      # consider this later, manually mapping port to this db causes issues with ports for other dbs later
       - "${PG_PORT}"
     environment:
       POSTGRES_DB: ${INV_DB}
@@ -57,7 +55,6 @@ services:
   conventiondb:
     image: "postgres:16-alpine"
     expose:
-      # consider this later, manually mapping port to this db causes issues with ports for other dbs later
       - "${PG_PORT}"
     environment:
       POSTGRES_DB: ${CONV_DB}
@@ -191,28 +188,33 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-  # registration-service:
-  #   build:
-  #     context: ./registration-service
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8000"
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #   networks:
-  #     - main-network
-  #     - redis-network
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
+  registration-service:
+    build:
+      context: ./registration-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000"
+    depends_on:
+      conventiondb:
+        condition: service_healthy
+      convention-service:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${CONV_DB}
+      POSTGRES_USER: ${CONV_USER}
+      POSTGRES_PASSWORD: ${CONV_PASSWORD}
+      POSTGRES_SERVICE: conventiondeck-conventiondb-1
+      POSTGRES_PORT: ${PG_PORT}
+    networks:
+      - main-network
+      - convention-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   nginx:
     image: nginx:alpine
     container_name: api-gateway
@@ -225,8 +227,8 @@ services:
         condition: service_healthy
       booth-service:
         condition: service_healthy
-      # registration-service:
-      #   condition: service_healthy
+      registration-service:
+        condition: service_healthy
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
