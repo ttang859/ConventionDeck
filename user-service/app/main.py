@@ -42,6 +42,7 @@ redis_client = redis.Redis(host=os.getenv(
 CONVENTION_BASE = os.getenv(
     "CONVENTION_BASE", "http://convention-service:8000")
 INVENTORY_BASE = os.getenv("INVENTORY_BASE", "http://inventory-service:8000")
+REGISTER_BASE = os.getenv("REGISTER_BASE", "http://registration-service:8000")
 TTL_SECONDS = int(os.getenv("TTL_SECONDS", "10000"))
 
 
@@ -67,9 +68,9 @@ async def health_check():
     try:
         async with httpx.AsyncClient() as client:
             # find a way to healthcheck userdb service
-            # convention_resp = await response_time(lambda: client.get(f'{CONVENTION_BASE}/health'))
+            registration_resp = await response_time(lambda: client.get(f'{REGISTER_BASE}/health'))
             inventory_resp = await response_time(lambda: client.get(f'{INVENTORY_BASE}/health'))
-            return format_health_response(service, [{"inventory-service": inventory_resp}])
+            return format_health_response(service, [{"inventory-service": inventory_resp}, {"registration-service": registration_resp}])
     except Exception as e:
         raise e
 
@@ -164,8 +165,14 @@ async def get_user_inventory(user_id: str):
     except Exception as e:
         raise e
 
-
 @app.get("/conv/{user_id}")
 async def get_attending_conventions(user_id: str):
     # get list of attending conventions from convention-service GET endpoint
-    pass
+    try:
+        async with httpx.AsyncClient() as client:
+            user_conv = await client.get(
+                f'{REGISTER_BASE}/get_conventions/{user_id}')
+            logging.info("Retreived conventions for user")
+            return JSONResponse(content=user_conv.json(), status_code=200)
+    except Exception as e:
+        raise e
