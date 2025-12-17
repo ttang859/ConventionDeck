@@ -10,23 +10,52 @@ See<a href="PROJECT_SPECIFICATIONS.md"> Project Specifications </a>for more deta
 
 ## Installation and Setup
 - Open Docker Desktop and have the engine running
+- Make sure to move this into a working dev environment (working in the class dev environment)
 - cd into the root directory in terminal (should be named ```\ConventionDeck```)
+- set up a .env file at the root with:
+~~~
+USER_DB= user
+USER_USER= useruser
+USER_PASSWORD= userpass
+
+INV_DB= inventory
+INV_USER= inventoryuser
+INV_PASSWORD= inventorypass
+
+CONV_DB= convention
+CONV_USER= conventionuser
+CONV_PASSWORD= conventionpass
+
+PG_PORT= 5432
+
+NUM_DUPES= 2
+~~~
 - To start up the system, run ```docker-compose up -d``` to run the Docker Compose file detached
     - To verify that services are up and running, run ```docker-compose ps``` to see the running containers and health status
 - To stop and shut down the system, run ```docker-compose down```
 
-## Usage Instructions:
-- ```curl -f http://localhost:8000/health```
-- running the installation and setup will trigger automatic health checks from each of the services and their respective dependencies
+## Testing:
+- Inside ```\test_scripts``` there are several bash scripts to run that test each individual service
+- To run:
+    - Make sure you are ```cd``` into the root directory
+    - ```chmod +x test_scripts/test_{service name}.sh``` to make the script executible
+    - Execute ```./test_scripts/test_{service name}.sh``` in the terminal and see results printed out
+    - Verify with the ```/test_data``` files and JSON Request Body in the bash scripts to see the intended results
 
-## API Documentations:
+<!-- ## API Documentations:
 - ```user-service:8000/health:```
     ~~~
     {
         service: user-service,
         status: healthy
         dependencies:
-            convention-service:
+            inventory-service:
+                status: healthy
+                response_time_ms: 15
+            registration-service:
+                status: healthy
+                response_time_ms: 15
+            userdb:
                 status: healthy
                 response_time_ms: 15
     }
@@ -46,12 +75,6 @@ See<a href="PROJECT_SPECIFICATIONS.md"> Project Specifications </a>for more deta
                 }
                 {
                     booth-service:{
-                        status: healthy
-                        response_time_ms: 15
-                    }
-                }
-                {
-                    redis:{
                         status: healthy
                         response_time_ms: 15
                     }
@@ -91,9 +114,7 @@ See<a href="PROJECT_SPECIFICATIONS.md"> Project Specifications </a>for more deta
                 status: healthy
                 response_time_ms: 15
     }
-    ~~~
-## Testing:
-- verify via ```docker-compose ps```
+    ~~~ -->
 
 ## Project Structure:
 - ```\documentation``` has all of the markdown files and diagrams for project details

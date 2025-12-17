@@ -77,8 +77,6 @@ services:
     expose:
       - "8000"
     depends_on:
-      # convention-service:
-      #   condition: service_healthy
       redis:
         condition: service_healthy
       userdb:
@@ -90,11 +88,10 @@ services:
       POSTGRES_USER: ${USER_USER}
       POSTGRES_PASSWORD: ${USER_PASSWORD}
       INVENTORY_BASE: http://inventory-service:8000
-      #REGISTRATION_BASE: http://registration-service:8000
+      REGISTRATION_BASE: http://registration-service:8000
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      # come back and figure the naming conventions out later
-      POSTGRES_SERVICE: conventiondeck-userdb-1
+      POSTGRES_SERVICE: userdb
       POSTGRES_PORT: ${PG_PORT}
       # half a day in seconds for TTL user session
       TTL_SECONDS: 43200000
@@ -109,6 +106,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    deploy:
+      replicas:  ${NUM_DUPES}
   inventory-service:
     build:
       context: ./inventory-service
@@ -122,7 +121,7 @@ services:
       POSTGRES_DB: ${INV_DB}
       POSTGRES_USER: ${INV_USER}
       POSTGRES_PASSWORD: ${INV_PASSWORD}
-      POSTGRES_SERVICE: conventiondeck-inventorydb-1
+      POSTGRES_SERVICE: inventorydb
       POSTGRES_PORT: ${PG_PORT}
     networks:
       - main-network
@@ -134,11 +133,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    deploy:
+      replicas: ${NUM_DUPES}
   convention-service:
     build:
       context: ./convention-service
       dockerfile: Dockerfile
-    ports:
+    expose:
       - "8000"
     depends_on:
       conventiondb:
@@ -147,7 +148,7 @@ services:
       POSTGRES_DB: ${CONV_DB}
       POSTGRES_USER: ${CONV_USER}
       POSTGRES_PASSWORD: ${CONV_PASSWORD}
-      POSTGRES_SERVICE: conventiondeck-conventiondb-1
+      POSTGRES_SERVICE: conventiondb
       POSTGRES_PORT: ${PG_PORT}
     networks:
       - main-network
@@ -159,11 +160,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    deploy:
+      replicas:  ${NUM_DUPES}
   booth-service:
     build:
       context: ./booth-service
       dockerfile: Dockerfile
-    ports:
+    expose:
       - "8000"
     depends_on:
       conventiondb:
@@ -174,7 +177,7 @@ services:
       POSTGRES_DB: ${CONV_DB}
       POSTGRES_USER: ${CONV_USER}
       POSTGRES_PASSWORD: ${CONV_PASSWORD}
-      POSTGRES_SERVICE: conventiondeck-conventiondb-1
+      POSTGRES_SERVICE: conventiondb
       POSTGRES_PORT: ${PG_PORT}
     networks:
       - main-network
@@ -186,11 +189,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    deploy:
+      replicas:  ${NUM_DUPES}
   registration-service:
     build:
       context: ./registration-service
       dockerfile: Dockerfile
-    ports:
+    expose:
       - "8000"
     depends_on:
       conventiondb:
@@ -201,7 +206,7 @@ services:
       POSTGRES_DB: ${CONV_DB}
       POSTGRES_USER: ${CONV_USER}
       POSTGRES_PASSWORD: ${CONV_PASSWORD}
-      POSTGRES_SERVICE: conventiondeck-conventiondb-1
+      POSTGRES_SERVICE: conventiondb
       POSTGRES_PORT: ${PG_PORT}
     networks:
       - main-network
@@ -213,6 +218,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    deploy:
+      replicas:  ${NUM_DUPES}
   nginx:
     image: nginx:alpine
     container_name: api-gateway
@@ -239,12 +246,17 @@ volumes:
   redis-data:
 networks:
   main-network:
+    name: main-network
     driver: bridge
   redis-network:
+    name: redis-network
     driver: bridge
   user-network:
+    name: user-network
     driver: bridge
   inventory-network:
+    name: inventory-network
     driver: bridge
   convention-network:
+    name: convention-network
     driver: bridge

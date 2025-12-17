@@ -3,7 +3,6 @@ import os
 import time
 from contextlib import asynccontextmanager
 
-import redis.asyncio as redis
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 

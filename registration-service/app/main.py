@@ -77,7 +77,7 @@ async def unregister(options: RegisteredPair):
     except Exception as e:
         raise e
 
-@app.post("/get_attendees/{conv_id}")
+@app.get("/get_attendees/{conv_id}")
 async def attendee_list(conv_id):
     try:
         # validate conv_id
@@ -88,7 +88,7 @@ async def attendee_list(conv_id):
     except Exception as e:
         raise e
 
-@app.post("/get_conventions/{user_id}")
+@app.get("/get_conventions/{user_id}")
 async def convention_list(user_id):
     try:
         # validate user_id
